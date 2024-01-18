@@ -6,17 +6,17 @@
 #endif
 
 
-
-
 char*
 read_file(char* file_name, char** buffer)
 {
     FILE* file;
-    int file_size;
+    int file_size;//
 
     file = fopen(file_name, "rb");
     if(file == NULL) {
 	perror("response file not exist");
+	*buffer = (char*)malloc(sizeof(char));
+	*buffer = NULL;
 	return NULL;
     }
     fseek(file, 0, SEEK_END);
@@ -31,25 +31,35 @@ read_file(char* file_name, char** buffer)
 	fclose(file);
 	return NULL;
     }
-    printf(*buffer);
 
     fclose(file);
     
 }
 
-/* char* */
-/* form_http(int status, header_t* headers, char* content) { */
-/*     sprintf(http_version,  "HTTP/1.1 %d OK\r\n", status); */
-/*     char* http_version[1024]; */
-/*     char* response; */
-/*     int response_size = strlen(http_ */
-/*     int headers_lenght = sizeof(headers)/sizeof(headers[0]); */
-/*     for(int i = 0; i <headers_lenght; i++) { */
-/* 	header_t  h = headers[0]; */
-/*     } */
-    
-
-/* } */
+char*
+constant_http(my_vec_t* headers, char* content, char* status) {
+    char* response;
+    char http_version[1024];
+    size_t response_size = 0;
+    size_t headers_size = 0;
+    sprintf(http_version,  "HTTP/1.1 %s \r\n", status);
+    headers_size  = headers->total*sizeof(header_t);
+    response_size += strlen(http_version);
+    response_size += headers_size;
+    response_size += strlen(content);
+    response = (char*)malloc((response_size+100)*sizeof(char));
+    memset(response, 0, response_size);
+    strcpy(response, http_version);
+    for(int i = 0; i<headers->total; ++i) {
+	strcat(response, ((header_t*)my_vec_get(headers, i))->name);
+	strcat(response, " : ");
+	strcat(response, ((header_t*)my_vec_get(headers, i))->value);
+	strcat(response, "\r\n");
+    }
+    strcat(response, "\r\n");
+    strcat(response, content);
+    return response;
+}
 
 
 

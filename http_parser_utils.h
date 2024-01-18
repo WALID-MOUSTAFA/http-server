@@ -16,15 +16,16 @@ typedef struct  {
 
 
 struct _request {
-	gchar* from;
-	gchar* url;
-	const char* method;
-	header_t headers[MAX_HEADER_NUM];
+    char* from;
+    char* url;
+    const char* method;
+    header_t headers[MAX_HEADER_NUM];
+    char* body;    
 };
 
 typedef struct _request request_t;
 
-extern void gui_log(request_t *req, gchar* message); //forword declaration not to include the whole header for a function, remeber ramadan problem;
+extern void gui_log(request_t *req, char* message); //forword declaration not to include the whole header for a function, remeber ramadan problem;
 
 request_t parse_http_request(sockfd_t sock);
 void compose_http_response();

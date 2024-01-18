@@ -102,33 +102,27 @@ void
 get_url(char** url)
 {
     size_t url_length = strlen(request.url);
-    *url = (char*)malloc(url_length+1*sizeof(char));
-    /* memset(url, 0, sizeof(url)); */
-    strncpy(*url, request.url, strlen(request.url));
-    (*url)[url_length] = '\0';  // Null-terminate the string
-
+    *url = (char*)malloc(url_length*sizeof(char));
+    memset(*url, 0, url_length);
+    strcpy(*url, request.url);
 }
 
 void*
 send_file_content(int socket)
 {
     char* response;
-    char* response_headers;
-    size_t response_size;
     char* url;
     char* file_path;
     char* file_content;
-
     my_vec_t headers;
+
+    
     my_vec_init(&headers);
     header_t h1 = {
 	.name="Content-Type",
 	.value="text/html"
     };
     my_vec_add(&headers, &h1);
-    
-    return NULL;
-    
     
     get_url(&url);
     file_path = (char*)malloc((strlen(home_dir)+strlen(url))*sizeof(char)+1);
@@ -137,34 +131,26 @@ send_file_content(int socket)
 	printf("error in line: %d\n", __LINE__);
 	exit(0);
     }
-    strcat(file_path, home_dir);
+    strcpy(file_path, home_dir);
     strcat(file_path, url);
 
     read_file(file_path, &file_content);
-    
-    response_headers = "HTTP/1.1 200 OK\r\nContent-Type: text/html\r\n\r\n";
-    response_size = (strlen(response_headers)+strlen(file_content))*sizeof(char);
-    response = (char*) malloc(response_size + 1);
-    if(response == NULL) {
-	printf("error in line: %d\n", __LINE__);
-	exit(0);
-    }
-    memset(response, 0, sizeof(response));
-    strcat(response, response_headers);
     if(file_content == NULL) {
-	//handle null
-	printf("file not found");
-	exit(0);
+	response = constant_http(&headers, "file not found" , "404 Not Found");
+	
     } else {
-	strcat(response, file_content);
+	response = constant_http(&headers, file_content , "200 OK");
     }
-    send(socket, response, strlen(response), 0);
     
-    free(url);
-    free(file_path);
-    free(response);
-    close(socket);
+    send(socket, response, strlen(response), 0);
 
+    free(response);
+    free(file_path);
+    free(url);
+    free(file_content);
+    my_vec_free(&headers);
+    close(socket);
+    
     return NULL;
 }
 
@@ -172,12 +158,6 @@ void*
 http_response(int client_socket, request_t request)
 {
     send_file_content(client_socket);
-    /* strcat(response, content); */
-    /* send(client_socket, response, strlen(response), 0); */
-    /* close(client_socket); */
-    /* free(content); */
-    /* memset(response, 0, sizeof(response)); */
-    /* return NULL; */
 }
 
 
@@ -187,6 +167,8 @@ handle_new_connections(int client_socket)
 {
     request_t parsed_http_request = parse_http_request(client_socket);
     http_response(client_socket, parsed_http_request);
+    free(request.url);    
+    //TODO: free headers
     return NULL;
 }
 

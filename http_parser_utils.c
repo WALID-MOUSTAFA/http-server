@@ -83,7 +83,7 @@ header_value_cb (http_parser *parser, const char *p, size_t len)
 int
 message_begin_cb (http_parser *parser)
 {
-	const gchar* method= http_method_str(parser->method);
+	const char* method= http_method_str(parser->method);
 	request.method= method;
 	return 0;
 }
@@ -106,15 +106,16 @@ headers_complete_cb (http_parser *parser)
 my_url_cb (http_parser *parser, const char* p, size_t len)
  {
 	 //TODO: clean up;
-	 gchar* url= malloc(1000);
+	 char* url= malloc(1000);
 	 strncpy(url, p, len);
 	 request.url= url;
-    	 return 0;
+	 return 0;
  }
 
  int
 body_cb (http_parser *parser, const char* p, size_t len)
 { 
-	return 0;
+    //TODO: write code for body;
+    return 0;
 }
 
