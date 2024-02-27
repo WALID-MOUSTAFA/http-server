@@ -106,7 +106,8 @@ headers_complete_cb (http_parser *parser)
 my_url_cb (http_parser *parser, const char* p, size_t len)
  {
 	 //TODO: clean up;
-	 char* url= malloc(1000);
+	 char* url= malloc(len+1);
+	 memset(url, 0, len+1);
 	 strncpy(url, p, len);
 	 request.url= url;
 	 return 0;

@@ -16,7 +16,7 @@ extren "C"
 {
 #endif
 	sockfd_t create_listen_socket(sockinfo_t* info);
-	
+	 void* walid_create_socket(void *handler);
 #ifdef __cplusplus	
 }
 #endif
