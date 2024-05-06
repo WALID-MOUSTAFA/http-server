@@ -88,7 +88,7 @@ walid_create_socket(void* handler)
 				
 	    }else if (events[i].events & EPOLLIN) {
 		client_sockfd= events[i].data.fd;
-		printf("client %d connected.\n", client_sockfd);
+		//printf("client %d connected.\n", client_sockfd);
 		//new_connection_handle(client_sockfd);
 		( (void(*)(int))  handler)(client_sockfd);
 	    } 

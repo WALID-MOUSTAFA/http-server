@@ -13,7 +13,7 @@
 #include <sys/socket.h>
 #include <sys/epoll.h>
 #include <sys/types.h>
-#include <gtk/gtk.h>
+
 #endif
 
 
@@ -33,11 +33,6 @@ extren "C"
 
 	extern int listen_sock;
 
-	extern gpointer global_app_communcation;
-
-	extern gchar cross_logging_buffer[100];
-	
-	
 	static void handle_new_connections(int sockfd);
  
 	void error(char* err);

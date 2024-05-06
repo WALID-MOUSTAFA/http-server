@@ -1,7 +1,10 @@
 
 #ifndef __WIN32
+#include <stdio.h>
+#include <stdlib.h>
 #include <dirent.h> //needs to be handled if ported to ms windows;
 #include <sys/stat.h>
+#include <string.h>
 #endif
 
 #include "utils.h"
@@ -39,20 +42,23 @@ form_html_list_directory(char*** list, int number, char** buffer)
     int offset = 0;
     
     for(int i = 0; i < number; ++i) {
-	list_size+=strlen((*list)[i]);
+		list_size+=strlen((*list)[i]);
     }
     buffer_size = ((list_size*size_of_li_tag)+
-		   strlen(html_opening)
-		   +strlen(html_closing)
-		   )*sizeof(char)*2;
+				   strlen(html_opening)
+				   +strlen(html_closing)
+				   )*sizeof(char)*2;
     *buffer= (char*)malloc(buffer_size);
     offset+=sprintf(*buffer, "%s", html_opening);
-    offset+=sprintf(*buffer+offset, "<a href='%s'> <li>%s</li> </a>",
-		    (*list)[0], (*list)[0]);
 
-    for(int i = 1; i < number; ++i) {
-	offset += sprintf(*buffer+offset, "<a href='%s'> <li>%s</li> </a>",
-			  (*list)[i], (*list)[i] );
+	
+	for(int i = 0; i < number; ++i) {
+		char* name = strrchr((*list)[i], '/');
+		if(strcmp(name, "/.") != 0) {
+		offset += sprintf(*buffer+offset,
+						  "<a style='display: block; margin-bottom: 4px' href='%s'> <li>%s</li> </a>",
+						  (*list)[i], ++name );
+		}
     }
     offset+=sprintf(*buffer+offset, "%s", html_closing);
 }
@@ -97,33 +103,32 @@ list_dir(char* path, char*** list, int* length )
     
     // Check if directory opened successfully
     if (dir == NULL) {
-        perror("opendir");
         return NULL;
     }
 
     // Read directory entries
     while ((entry = readdir(dir)) != NULL) {
-	(*length)++;
+		(*length)++;
     }
 
     rewinddir(dir);
     *list = (char **)malloc(*length * sizeof(char *));
 
     for(int i = 0; i < *length; ++i) {
-//	if(strstr((*list)[i], "/..") != NULL && strstr( (*list)[i], "/.") !=NULL ){
-//	    continue;
-//	}
+		//	if(strstr((*list)[i], "/..") != NULL && strstr( (*list)[i], "/.") !=NULL ){
+		//	    continue;
+		//	}
 	
-	entry = readdir(dir);
-	(*list)[i] = (char*)
-	    malloc ((strlen(entry->d_name)+2+strlen(path)) * sizeof(char));
-	if(strcmp(path, "./html_dir") != 0){
-	    sprintf((*list)[i], "%s/%s", path, entry->d_name);
-	    removeSubstring((*list)[i], "./html_dir/");
-	} else {
-	    sprintf((*list)[i], "%s", entry->d_name);
-	    removeSubstring((*list)[i], "./html_dir/");
-	}
+		entry = readdir(dir);
+		(*list)[i] = (char*)
+			malloc ((strlen(entry->d_name)+2+strlen(path)) * sizeof(char));
+		if(strcmp(path, "./html_dir") != 0){
+			sprintf((*list)[i], "%s/%s", path, entry->d_name);
+			removeSubstring((*list)[i], "./html_dir/");
+		} else {
+			sprintf((*list)[i], "%s", entry->d_name);
+			removeSubstring((*list)[i], "./html_dir/");
+		}
     }
     
     // Close directory
@@ -151,10 +156,10 @@ read_file(char* file_name, char** buffer)
     
     file = fopen(file_name, "rb");
     if(file == NULL) {
-	perror("response file not exist");
-	*buffer = (char*)malloc(sizeof(char));
-	*buffer = NULL;
-	return;
+		perror("response file not exist");
+		*buffer = (char*)malloc(sizeof(char));
+		*buffer = NULL;
+		return;
     }
     
     fseek(file, 0, SEEK_END);
@@ -164,10 +169,10 @@ read_file(char* file_name, char** buffer)
     *buffer = (char*)malloc((file_size+1)*sizeof(char));
     size_t bytes_read = fread(*buffer, sizeof(char), file_size, file);
     if(bytes_read != file_size) {
-	perror("error in reading file");
-	free (*buffer);
-	fclose(file);
-	return ;
+		perror("error in reading file");
+		free (*buffer);
+		fclose(file);
+		return ;
     }
 
     fclose(file);
@@ -185,8 +190,8 @@ construct_headers(my_vec_t* headers, char* status)
     sprintf(http_version, "HTTP/1.1 %s \r\n", status);
     buffer_size += sizeof(http_version);
     for(int i = 0; i < headers->total; i++) {
-	headers_size += strlen(((header_t*)my_vec_get(headers, i))->name);
-	headers_size += strlen(((header_t*)my_vec_get(headers, i))->value);
+		headers_size += strlen(((header_t*)my_vec_get(headers, i))->name);
+		headers_size += strlen(((header_t*)my_vec_get(headers, i))->value);
     }
     buffer_size += headers_size;
     buffer_size *= 2;
@@ -194,10 +199,10 @@ construct_headers(my_vec_t* headers, char* status)
     memset(buffer, 0, buffer_size);
     strcpy(buffer, http_version);
     for(int i = 0; i<headers->total; ++i) {
-	strcat(buffer, ((header_t*)my_vec_get(headers, i))->name);
-	strcat(buffer, " : ");
-	strcat(buffer, ((header_t*)my_vec_get(headers, i))->value);
-	strcat(buffer, "\r\n");
+		strcat(buffer, ((header_t*)my_vec_get(headers, i))->name);
+		strcat(buffer, " : ");
+		strcat(buffer, ((header_t*)my_vec_get(headers, i))->value);
+		strcat(buffer, "\r\n");
     }
     return buffer;
 }
@@ -210,8 +215,8 @@ construct_http(my_vec_t* headers, char* content, char* status) {
     size_t headers_size = 0;
     sprintf(http_version,  "HTTP/1.1 %s \r\n", status);
     for(int i = 0; i < headers->total; i++) {
-	headers_size += strlen(((header_t*)my_vec_get(headers, i))->name);
-	headers_size += strlen(((header_t*)my_vec_get(headers, i))->value);
+		headers_size += strlen(((header_t*)my_vec_get(headers, i))->name);
+		headers_size += strlen(((header_t*)my_vec_get(headers, i))->value);
     }
     response_size += strlen(http_version);
     response_size += headers_size;
@@ -220,10 +225,10 @@ construct_http(my_vec_t* headers, char* content, char* status) {
     memset(response, 0, (response_size+100)*sizeof(char));
     strcpy(response, http_version);
     for(int i = 0; i<headers->total; ++i) {
-	strcat(response, ((header_t*)my_vec_get(headers, i))->name);
-	strcat(response, " : ");
-	strcat(response, ((header_t*)my_vec_get(headers, i))->value);
-	strcat(response, "\r\n");
+		strcat(response, ((header_t*)my_vec_get(headers, i))->name);
+		strcat(response, " : ");
+		strcat(response, ((header_t*)my_vec_get(headers, i))->value);
+		strcat(response, "\r\n");
     }
     strcat(response, "\r\n");
     strcat(response, content);

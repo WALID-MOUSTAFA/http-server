@@ -2,6 +2,7 @@
 //TODO: figure out when to respond with html and when to respond with sending file.
 
 #include <sys/socket.h>
+#include <signal.h>
 #include "server.h"
 #include "socket.h"
 #include "node_http_parser.h"
@@ -11,7 +12,6 @@
 
 int server_running = 0;
 sockfd_t listen_sock;
-gpointer global_app_communcation;
 pthread_t server_thread;
 char* home_dir = "./html_dir";
 
@@ -29,25 +29,25 @@ http_response(int client_socket, request_t request)
     char* url;
     char* file_path;
     char* extention;
+
     get_url(request, &url);
     file_path = file_path_from_url(home_dir, url);
     extention = strrchr(file_path, '.');
     if(extention == NULL) {
-	extention = "";
+		extention = "";
     }
     
     if(is_dir(file_path)) { 
-	handle_dir(client_socket, file_path); 
+		handle_dir(client_socket, file_path); 
     } else if(strstr(extention, "html") == NULL
-	      &&strstr(extention, "css") == NULL) {
-	send_downloadable_file(client_socket, file_path);
+			  &&strstr(extention, "css") == NULL) {
+		send_downloadable_file(client_socket, file_path);
     }  else {
-	send_file_content(client_socket, file_path);
+		send_file_content(client_socket, file_path);
     }
     
     free(url);
 }
-
 
 
 
@@ -64,7 +64,7 @@ handle_new_connections(int client_socket)
 }
 
 
- void
+void
 activate_server()
 {
     char* port_s;
@@ -74,13 +74,13 @@ activate_server()
     port_s=  "5000";
     port= atoi(port_s);
     printf("server is up and listening on port: %s\n",
-	   port_s);	
+		   port_s);	
 
     pthread_create(&server_thread, NULL, walid_create_socket,
-		   (void*)&handle_new_connections);
+				   (void*)&handle_new_connections);
 }
 
- void
+void
 stop_server()
 {
     server_running=0;
@@ -89,21 +89,6 @@ stop_server()
     exit(0);
 }
 
-
-void
-connect_communication_signals()
-{
-    g_signal_connect(global_app_communcation,
-		     "activate_server",
-		     G_CALLBACK(activate_server),
-		     NULL);
-
-	
-    g_signal_connect(global_app_communcation,
-		     "stop_server",
-		     G_CALLBACK(stop_server),
-		     NULL);
-}
 
 
 int

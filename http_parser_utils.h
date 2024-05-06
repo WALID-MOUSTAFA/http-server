@@ -1,7 +1,7 @@
 #ifndef _HTTP_PARSER_UTILS_H
 #define _HTTP_PARSER_UTILS_H
 
-#include <gtk/gtk.h>
+
 #include "node_http_parser.h"
 #include "socket.h"
 
